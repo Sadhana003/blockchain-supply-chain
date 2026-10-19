@@ -1,0 +1,25 @@
+{
+  "name": "blockchain-supply-chain-capstone",
+  "version": "1.0.0",
+  "description": "Experiment 10: Blockchain-based Supply Chain & Anti-Counterfeiting DApp Capstone Project",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
+  },
+  "keywords": [
+    "blockchain",
+    "solidity",
+    "ethereum",
+    "dapp",
+    "supply-chain",
+    "smart-contracts"
+  ],
+  "author": "Capstone Student",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  }
+}

@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockTrack — Supply Chain Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --primary: #3b5bdb;
+      --primary-dark: #2f4ac2;
+      --primary-light: #eef2ff;
+      --green: #12b886;
+      --green-light: #e6fcf5;
+      --orange: #f59f00;
+      --orange-light: #fff9db;
+      --red: #fa5252;
+      --red-light: #fff5f5;
+      --text: #1e293b;
+      --muted: #64748b;
+      --shadow: 0 2px 12px rgba(59,91,219,.10);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(59,91,219,.3);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; }
+    .brand-icon { width: 32px; height: 32px; background: rgba(255,255,255,.2); border-radius: 8px; display: grid; place-items: center; font-size: 1rem; }
+    .wallet-pill {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      color: #fff;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: .78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .wallet-pill:hover { background: rgba(255,255,255,.25); }
+    .wallet-pill.connected { background: rgba(18,184,134,.25); border-color: rgba(18,184,134,.5); }
+
+    /* MAIN LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 60px); }
+
+    /* SIDEBAR NAV */
+    nav {
+      width: 200px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 20px 12px;
+      flex-shrink: 0;
+    }
+    .nav-label { font-size: .68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding: 0 8px; margin-bottom: 8px; margin-top: 16px; }
+    .nav-label:first-child { margin-top: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all .15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    /* CONTENT */
+    main { flex: 1; padding: 28px 32px; max-width: 780px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .badge {
+      font-size: .68rem; font-weight: 600;
+      background: var(--primary-light); color: var(--primary);
+      padding: 2px 8px; border-radius: 20px;
+    }
+
+    /* PAGE TITLE */
+    .page-header { margin-bottom: 24px; }
+    .page-title { font-size: 1.4rem; font-weight: 700; }
+    .page-sub { font-size: .875rem; color: var(--muted); margin-top: 4px; }
+
+    /* FORM */
+    label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: .88rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .hint { font-size: .76rem; color: var(--muted); margin-top: 4px; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,91,219,.3); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #0ca678; transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #e03131; }
+    .btn-sm { padding: 7px 14px; font-size: .8rem; border-radius: 8px; }
+    .btn-full { width: 100%; justify-content: center; padding: 12px; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    /* CHIP PRESETS */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      transition: all .15s;
+    }
+    .chip:hover, .chip.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .chip.green:hover, .chip.green.active { background: var(--green-light); color: var(--green); border-color: var(--green); }
+
+    /* ALERTS */
+    .alert {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: .84rem;
+      margin-bottom: 16px;
+    }
+    .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-success { background: var(--green-light); color: #0ca678; border: 1px solid #96f2d7; }
+    .alert-error { background: var(--red-light); color: #c92a2a; border: 1px solid #ffa8a8; }
+    .alert-warning { background: var(--orange-light); color: #e67700; border: 1px solid #ffd43b; }
+    .alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #bac8ff; }
+    .hidden { display: none !important; }
+
+    /* TOAST */
+    #toast-container { position: fixed; top: 72px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: .84rem;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      animation: slideIn .3s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
+    .toast.info { background: var(--primary); }
+    @keyframes slideIn { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes fadeOut { to { opacity:0; transform: translateX(40px); } }
+
+    /* PRODUCT CARDS */
+    .product-grid { display: grid; gap: 12px; }
+    .product-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all .15s;
+      background: var(--card);
+    }
+    .product-card:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,91,219,.08); }
+    .product-card.selected { border-color: var(--primary); background: var(--primary-light); }
+    .product-card .prod-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .prod-icon { width: 36px; height: 36px; background: var(--primary-light); color: var(--primary); border-radius: 8px; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
+    .prod-name { font-weight: 700; font-size: .92rem; }
+    .prod-id { font-size: .75rem; color: var(--muted); }
+    .prod-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag {
+      font-size: .72rem; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .tag-blue { background: var(--primary-light); color: var(--primary); }
+    .tag-green { background: var(--green-light); color: var(--green); }
+    .tag-orange { background: var(--orange-light); color: var(--orange); }
+    .tag-red { background: var(--red-light); color: var(--red); }
+
+    /* STEPPER */
+    .stepper { display: flex; align-items: flex-start; justify-content: center; gap: 0; margin: 20px 0; }
+    .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .step-item:not(:last-child)::after {
+      content: ''; position: absolute;
+      top: 18px; left: 60%; width: 80%;
+      height: 2px; background: var(--border);
+    }
+    .step-item.done:not(:last-child)::after { background: var(--green); }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--border); color: var(--muted);
+      display: grid; place-items: center;
+      font-size: .85rem; font-weight: 700;
+      z-index: 1; border: 2px solid transparent;
+      transition: all .3s;
+    }
+    .step-item.done .step-circle { background: var(--green); color: #fff; border-color: var(--green); }
+    .step-item.active .step-circle { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59,91,219,.15); }
+    .step-label { font-size: .68rem; font-weight: 600; color: var(--muted); margin-top: 6px; text-align: center; }
+    .step-item.done .step-label, .step-item.active .step-label { color: var(--text); }
+
+    /* HISTORY LIST */
+    .history-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .history-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+    }
+    .history-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+    .history-dot.green { background: var(--green); }
+    .history-dot.orange { background: var(--orange); }
+    .history-time { font-size: .72rem; color: var(--muted); }
+    .history-action { font-size: .84rem; font-weight: 600; }
+    .history-detail { font-size: .78rem; color: var(--muted); }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--muted); font-size: .88rem;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state .title { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+
+    /* QR */
+    .qr-box { text-align: center; padding: 16px; background: var(--primary-light); border-radius: 12px; }
+    .qr-box img { border-radius: 8px; }
+
+    /* STAT CARDS */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: .75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+    /* SETTINGS */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info .setting-title { font-weight: 600; font-size: .88rem; }
+    .setting-info .setting-desc { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+    /* TOGGLE */
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--border); border-radius: 24px;
+      cursor: pointer; transition: .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: .2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* DIVIDER */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* INFO BOX */
+    .info-box {
+      background: var(--primary-light);
+      border: 1px solid #bac8ff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: .82rem;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+    }
+    .info-box strong { display: block; margin-bottom: 4px; }
+
+    /* GUIDE STEPS */
+    .guide-steps { display: flex; flex-direction: column; gap: 10px; }
+    .guide-step { display: flex; gap: 12px; align-items: flex-start; }
+    .guide-num { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: .75rem; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; }
+    .guide-text { font-size: .82rem; color: var(--text); padding-top: 3px; }
+    .guide-text code { background: var(--primary-light); color: var(--primary); padding: 1px 5px; border-radius: 4px; font-size: .8rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 680px) {
+      nav { display: none; }
+      main { padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <div class="brand-icon">🔗</div>
+    <span>BlockTrack</span>
+  </div>
+  <button class="wallet-pill" id="walletBtn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+</header>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav>
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span>Dashboard</div>
+    <div class="nav-item" onclick="showPage('track')"><span class="icon">🔍</span>Track Product</div>
+    <div class="nav-item" onclick="showPage('mint')"><span class="icon">🏷️</span>Mint Product</div>
+
+    <div class="nav-label">Manage</div>
+    <div class="nav-item" onclick="showPage('transfer')"><span class="icon">🔄</span>Transfer Custody</div>
+    <div class="nav-item" onclick="showPage('status')"><span class="icon">📝</span>Update Status</div>
+
+    <div class="nav-label">Admin</div>
+    <div class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span>Settings</div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main>
+
+    <!-- ======================== DASHBOARD ======================== -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title">Welcome to BlockTrack 👋</div>
+        <div class="page-sub">Your blockchain-powered supply chain anti-counterfeiting system</div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total Products</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-active">0</div><div class="stat-label">In Transit</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-delivered">0</div><div class="stat-label">Delivered</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚀 Quick Actions</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <button class="btn btn-primary" onclick="showPage('mint')">🏷️ Mint New Product</button>
+          <button class="btn btn-outline" onclick="showPage('track')">🔍 Track a Product</button>
+          <button class="btn btn-success btn-sm" onclick="showPage('transfer')">🔄 Transfer Custody</button>
+          <button class="btn btn-outline btn-sm" onclick="showPage('status')">📝 Update Status</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📦 Recent Products <span class="badge" id="recentBadge">0</span></div>
+        <div id="dashRecentList">
+          <div class="empty-state">
+            <div class="icon">📦</div>
+            <div class="title">No products yet</div>
+            <p>Mint your first product to get started!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ℹ️ How It Works</div>
+        <div class="guide-steps">
+          <div class="guide-step"><div class="guide-num">1</div><div class="guide-text"><strong>Mint</strong> — Register a product with a unique ID on the blockchain ledger</div></div>
+          <div class="guide-step"><div class="guide-num">2</div><div class="guide-text"><strong>Transfer</strong> — Move custody from Manufacturer → Logistics → Distributor → Retailer → Customer</div></div>
+          <div class="guide-step"><div class="guide-num">3</div><div class="guide-text"><strong>Update Status</strong> — Record checkpoints like Shipped, Customs Cleared, Delivered</div></div>
+          <div class="guide-step"><div class="guide-num">4</div><div class="guide-text"><strong>Track</strong> — Scan or search any product to verify authenticity and full provenance trail</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================== TRACK ======================== -->
+    <div id="page-track" class="page">
+      <div class="page-header">
+        <div class="page-title">🔍 Track Product</div>
+        <div class="page-sub">Search by Product ID or select from registered products</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Search Product</div>
+        <div class="form-group">
+          <label>Product ID</label>
+          <div style="display:flex;gap:10px;">
+            <input type="text" id="trackId" placeholder="e.g. PROD-001" />
+            <button class="btn btn-primary" onclick="trackProduct()">Search</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Or select a registered product</label>
+          <div class="chip-row" id="trackChips">
+            <span style="font-size:.8rem;color:var(--muted)">No products yet — mint one first!</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="trackResult" class="hidden">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- ======================== MINT ======================== -->
+    <div id="page-mint" class="page">
+      <div class="page-header">
+        <div class="page-title">🏷️ Mint Product</div>
+        <div class="page-sub">Register a new product on the blockchain ledger</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Presets</div>
+        <div class="chip-row">
+          <div class="chip" onclick="fillPreset('Laptop HP-50','Electronics','HP Inc.','New Delhi, India')">💻 Laptop HP-50</div>
+          <div class="chip" onclick="fillPreset('iPhone 16 Pro','Electronics','Apple Inc.','Zhengzhou, China')">📱 iPhone 16 Pro</div>
+          <div class="chip" onclick="fillPreset('Pfizer Vaccine','Pharmaceuticals','Pfizer Ltd.','Kalamazoo, USA')">💉 Pfizer Vaccine</div>
+          <div class="chip" onclick="fillPreset('Rolex Submariner','Luxury Goods','Rolex SA','Geneva, Switzerland')">⌚ Rolex Watch</div>
+          <div class="chip" onclick="fillPreset('Nike Air Max 270','Footwear','Nike Inc.','Guangzhou, China')">👟 Nike Shoes</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Product Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" id="mintName" placeholder="e.g. iPhone 16 Pro" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="mintCategory">
+              <option value="">Select category...</option>
+              <option>Electronics</option>
+              <option>Pharmaceuticals</option>
+              <option>Luxury Goods</option>
+              <option>Footwear</option>
+              <option>Food & Beverage</option>
+              <option>Automotive Parts</option>
+              <option>Cosmetics</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Manufacturer Name *</label>
+            <input type="text" id="mintMfr" placeholder="e.g. Apple Inc." />
+          </div>
+          <div class="form-group">
+            <label>Manufacturing Location</label>
+            <input type="text" id="mintLocation" placeholder="e.g. Foxconn, China" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Batch / Serial Number</label>
+            <input type="text" id="mintBatch" placeholder="e.g. BATCH-2024-A1" />
+          </div>
+          <div class="form-group">
+            <label>Manufacture Date</label>
+            <input type="date" id="mintDate" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Customer / Recipient Address <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+          <input type="text" id="mintCustomer" placeholder="e.g. 123 Main St, Mumbai, Maharashtra 400001" />
+          <div class="hint">💡 Enter full delivery address — street, city, state, PIN code</div>
+        </div>
+        <div class="form-group">
+          <label>Additional Notes</label>
+          <textarea id="mintNotes" rows="2" placeholder="Any extra info (batch lot, expiry, serial no.)..."></textarea>
+        </div>
+
+        <div id="mintAlert" class="hidden"></div>
+
+        <button class="btn btn-primary btn-full" onclick="mintProduct()" id="mintBtn">
+          🏷️ Mint &amp; Register Product
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================== TRANSFER ======================== -->
+    <div id="page-transfer" class="page">
+      <div class="page-header">
+        <div class="page-title">🔄 Transfer Custody</div>
+        <div class="page-sub">Move a product to the next stage in the supply chain</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Select Product</div>
+        <div class="chip-row" id="transferChips">
+          <span style="font-size:.8rem;color:var(--muted)">No products registered yet</span>
+        </div>
+        <div id="selectedTransferProd" class="hidden">
+          <div class="alert alert-info"><span class="alert-icon">ℹ️</span><span id="selectedTransferName">—</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="transferForm" style="display:none">
+        <div class="card-title">Transfer To</div>
+        <div class="chip-row" id="custodyChips">
+          <!-- filled dynamically -->
+        </div>
+        <div class="form-group" style="margin-top:8px;">
+          <label>Recipient Address (Wallet or Physical)</label>
+          <input type="text" id="transferRecipient" placeholder="e.g. 0xABC... or Logistics Hub, Mumbai" />
+          <div class="hint">💡 Wallet address for blockchain OR physical address for internal ledger</div>
+        </div>
+        <div class="form-group">
+          <label>Notes / Reason</label>
+          <input type="text" id="transferNotes" placeholder="e.g. Sent to Delhi warehouse" />
+        </div>
+        <div id="transferAlert" class="hidden"></div>
+        <button class="btn btn-success btn-full" onclick="doTransfer()">✅ Confirm Transfer</button>
+      </div>
+    </div>
+
+    <!-- ======================== UPDATE STATUS ======================== -->
+    <div id="page-status" class="page">
+      <div class="page-header">
+        <div class="page-title">📝 Update Status</div>
+        <div class="page-sub">Record checkpoints and status updates for a product</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Select Product</div>
+        <div class="chip-row" id="statusChips">
+          <span style="font-size:.8rem;color:var(--muted)">No products registered yet</span>
+        </div>
+        <div id="selectedStatusProd" class="hidden">
+          <div class="alert alert-info"><span class="alert-icon">ℹ️</span><span id="selectedStatusName">—</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="statusForm" style="display:none">
+        <div class="card-title">New Status</div>
+        <div class="chip-row">
+          <div class="chip green" onclick="setStatus('Manufactured')">🏭 Manufactured</div>
+          <div class="chip green" onclick="setStatus('Quality Checked')">✅ Quality Checked</div>
+          <div class="chip green" onclick="setStatus('Shipped')">✈️ Shipped</div>
+          <div class="chip green" onclick="setStatus('In Transit')">🚚 In Transit</div>
+          <div class="chip green" onclick="setStatus('Customs Cleared')">🛃 Customs Cleared</div>
+          <div class="chip green" onclick="setStatus('At Warehouse')">🏢 At Warehouse</div>
+          <div class="chip green" onclick="setStatus('Out for Delivery')">📦 Out for Delivery</div>
+          <div class="chip green" onclick="setStatus('Delivered')">✔️ Delivered</div>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <input type="text" id="statusText" placeholder="Type custom status or click above..." />
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="statusLocation" placeholder="e.g. Mumbai Port, Maharashtra" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="statusNotes" placeholder="Additional details..." />
+        </div>
+        <div id="statusAlert" class="hidden"></div>
+        <button class="btn btn-primary btn-full" onclick="doUpdateStatus()">📝 Record Status Update</button>
+      </div>
+    </div>
+
+    <!-- ======================== SETTINGS ======================== -->
+    <div id="page-settings" class="page">
+      <div class="page-header">
+        <div class="page-title">⚙️ Settings</div>
+        <div class="page-sub">Configure blockchain connection and manage data</div>
+      </div>
+
+      <!-- MetaMask Status -->
+      <div class="card">
+        <div class="card-title">🦊 MetaMask / Blockchain</div>
+        <div id="mmStatus" class="alert alert-warning">
+          <span class="alert-icon">⚠️</span>
+          <span>MetaMask not connected. App runs in local ledger mode.</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">MetaMask Account</div>
+            <div class="setting-desc" id="mmAccount">Not connected</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="connectWallet()">Connect</button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Network</div>
+            <div class="setting-desc" id="mmNetwork">—</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Mode</div>
+            <div class="setting-desc" id="mmMode">Local Ledger (no blockchain)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contract Address -->
+      <div class="card">
+        <div class="card-title">📄 Smart Contract (Optional)</div>
+        <div class="info-box">
+          <strong>ℹ️ For Remix IDE users:</strong>
+          Deploy <code>SupplyChain.sol</code> in Remix IDE, then paste the contract address below to enable on-chain transactions.
+        </div>
+        <div class="form-group">
+          <label>Deployed Contract Address</label>
+          <input type="text" id="contractAddr" placeholder="0x..." />
+          <div class="hint">⚠️ Do NOT paste your MetaMask wallet address here — paste the deployed contract address</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveContractAddr()">Save Address</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="clearContractAddr()">Clear</button>
+      </div>
+
+      <!-- Remix Guide -->
+      <div class="card">
+        <div class="card-title">📖 How to Deploy via Remix IDE</div>
+        <div class="guide-steps">
+          <div class="guide-step"><div class="guide-num">1</div><div class="guide-text">Open <code>remix.ethereum.org</code> → paste <code>SupplyChain.sol</code> → compile with Solidity <code>0.8.20</code></div></div>
+          <div class="guide-step"><div class="guide-num">2</div><div class="guide-text">In Deploy tab → Environment: <code>Injected Provider - MetaMask</code> → connect your wallet</div></div>
+          <div class="guide-step"><div class="guide-num">3</div><div class="guide-text">Click <code>Deploy</code> → confirm in MetaMask → copy the deployed contract address</div></div>
+          <div class="guide-step"><div class="guide-num">4</div><div class="guide-text">Paste that address in the field above and click Save</div></div>
+          <div class="guide-step"><div class="guide-num">5</div><div class="guide-text">Switch to <code>Sepolia</code> testnet in MetaMask for free test ETH</div></div>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="card">
+        <div class="card-title">🗄️ Data Management</div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Total Products Stored</div>
+            <div class="setting-desc" id="totalProdsCount">0 products in local ledger</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Clear All Data</div>
+            <div class="setting-desc">Remove all locally stored products and reset the ledger</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="confirmReset()">Reset</button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">Export Data</div>
+            <div class="setting-desc">Download all product records as JSON</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="exportData()">Export</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================= JAVASCRIPT ============================= -->
+<script>
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'blocktrack_v2_ledger';
+const CONTRACT_KEY = 'blocktrack_v2_contract';
+
+let ledger = {
+  products: {},       // { id: { ...productData } }
+  nextId: 1,
+};
+let selectedProduct = null;  // currently selected product id
+let selectedTransferProd = null;
+let selectedStatusProd = null;
+let selectedCustody = null;
+let provider = null, signer = null, walletAddress = null;
+const CUSTODY_STAGES = ['Manufacturer','Logistics','Distributor','Retailer','Customer'];
+
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+function loadLedger() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) ledger = JSON.parse(raw);
+  } catch(e) { console.warn('Load ledger failed', e); }
+}
+function saveLedger() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ledger)); } catch(e) {}
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const items = document.querySelectorAll('.nav-item');
+  items.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+name+"'")) n.classList.add('active'); });
+  
+  if (name === 'track') refreshTrackChips();
+  if (name === 'transfer') refreshTransferChips();
+  if (name === 'status') refreshStatusChips();
+  if (name === 'dashboard') refreshDashboard();
+  if (name === 'settings') refreshSettings();
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success', dur = 3500) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'fadeOut .3s ease forwards'; setTimeout(() => t.remove(), 300); }, dur);
+}
+
+function showAlert(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type}`;
+  el.innerHTML = `<span class="alert-icon">${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span><span>${msg}</span>`;
+  el.classList.remove('hidden');
+}
+
+// ─── WALLET ──────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    toast('MetaMask not found. App works in local ledger mode.', 'info', 4000);
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    walletAddress = accounts[0];
+    const btn = document.getElementById('walletBtn');
+    btn.textContent = '🦊 ' + walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
+    btn.classList.add('connected');
+    if (typeof ethers !== 'undefined') {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner();
+    }
+    toast('MetaMask connected: ' + walletAddress.slice(0,8) + '...', 'success');
+    refreshSettings();
+  } catch(e) {
+    if (e.code === 4001) toast('Connection rejected by user', 'error');
+    else toast('MetaMask error: ' + (e.message || e), 'error');
+  }
+}
+
+// ─── GENERATE PRODUCT ID ─────────────────────────────────────────────────────
+function genId() {
+  const id = 'PROD-' + String(ledger.nextId).padStart(3, '0');
+  ledger.nextId++;
+  return id;
+}
+
+function now() { return new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); }
+
+// ─── MINT PRODUCT ─────────────────────────────────────────────────────────────
+function fillPreset(name, cat, mfr, loc) {
+  document.getElementById('mintName').value = name;
+  document.getElementById('mintCategory').value = cat;
+  document.getElementById('mintMfr').value = mfr;
+  document.getElementById('mintLocation').value = loc;
+  document.getElementById('mintDate').value = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('#page-mint .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function mintProduct() {
+  const name = document.getElementById('mintName').value.trim();
+  const cat = document.getElementById('mintCategory').value;
+  const mfr = document.getElementById('mintMfr').value.trim();
+  const loc = document.getElementById('mintLocation').value.trim();
+  const batch = document.getElementById('mintBatch').value.trim();
+  const mdate = document.getElementById('mintDate').value;
+  const customer = document.getElementById('mintCustomer').value.trim();
+  const notes = document.getElementById('mintNotes').value.trim();
+
+  if (!name) { showAlert('mintAlert', 'Product Name is required.'); return; }
+  if (!mfr)  { showAlert('mintAlert', 'Manufacturer Name is required.'); return; }
+
+  document.getElementById('mintAlert').classList.add('hidden');
+  const btn = document.getElementById('mintBtn');
+  btn.disabled = true; btn.textContent = '⏳ Registering...';
+
+  setTimeout(() => {
+    const id = genId();
+    const product = {
+      id, name, category: cat, manufacturer: mfr,
+      location: loc, batch, manufactureDate: mdate,
+      customerAddress: customer, notes,
+      status: 'Manufactured',
+      custodyStage: 0,      // index into CUSTODY_STAGES
+      custodian: mfr || 'Manufacturer',
+      mintedAt: now(),
+      history: [
+        { action: 'Product Minted', detail: `Registered by ${mfr || 'Manufacturer'}`, location: loc || '—', time: now(), dot: 'blue' },
+      ],
+    };
+    ledger.products[id] = product;
+    saveLedger();
+
+    btn.disabled = false; btn.textContent = '🏷️ Mint & Register Product';
+    clearMintForm();
+    toast(`✅ Product "${name}" minted with ID ${id}`, 'success', 4000);
+    showAlert('mintAlert', `Product registered successfully! ID: <strong>${id}</strong>`, 'success');
+    refreshDashboard();
+    refreshTrackChips();
+  }, 500);
+}
+
+function clearMintForm() {
+  ['mintName','mintMfr','mintLocation','mintBatch','mintCustomer','mintNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mintCategory').value = '';
+  document.getElementById('mintDate').value = '';
+  document.querySelectorAll('#page-mint .chip').forEach(c => c.classList.remove('active'));
+}
+
+// ─── TRACK ────────────────────────────────────────────────────────────────────
+function refreshTrackChips() {
+  const container = document.getElementById('trackChips');
+  const ids = Object.keys(ledger.products);
+  if (!ids.length) {
+    container.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">No products yet — mint one first!</span>';
+    return;
+  }
+  container.innerHTML = ids.map(id => {
+    const p = ledger.products[id];
+    return `<div class="chip" onclick="selectTrack('${id}')">${p.id}: ${p.name}</div>`;
+  }).join('');
+}
+
+function selectTrack(id) {
+  document.getElementById('trackId').value = id;
+  document.querySelectorAll('#trackChips .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  trackProduct();
+}
+
+function trackProduct() {
+  const id = document.getElementById('trackId').value.trim().toUpperCase();
+  const result = document.getElementById('trackResult');
+  if (!id) { result.classList.add('hidden'); return; }
+
+  const p = ledger.products[id];
+  if (!p) {
+    result.className = '';
+    result.innerHTML = `<div class="alert alert-error"><span class="alert-icon">❌</span><span>Product ID <strong>${id}</strong> not found in the ledger.</span></div>`;
+    result.classList.remove('hidden');
+    return;
+  }
+
+  // Build stepper
+  const stepLabels = ['🏭 Mfr','✈️ Logistics','🏬 Distributor','🏪 Retailer','👤 Customer'];
+  const stepFull = ['Manufacturer','Logistics','Distributor','Retailer','Customer'];
+  const stepsHTML = stepLabels.map((lbl, i) => {
+    let cls = '';
+    if (i < p.custodyStage) cls = 'done';
+    else if (i === p.custodyStage) cls = 'active';
+    return `<div class="step-item ${cls}"><div class="step-circle">${cls==='done'?'✓':(i+1)}</div><div class="step-label">${lbl}</div></div>`;
+  }).join('');
+
+  // Build history
+  const histHTML = [...p.history].reverse().map(h => `
+    <div class="history-item">
+      <div class="history-dot ${h.dot||''}"></div>
+      <div>
+        <div class="history-action">${h.action}</div>
+        <div class="history-detail">${h.detail}${h.location ? ' · 📍 ' + h.location : ''}</div>
+        <div class="history-time">🕐 ${h.time}</div>
+      </div>
+    </div>`).join('');
+
+  // QR code
+  const qrData = encodeURIComponent(`BlockTrack|ID:${p.id}|Name:${p.name}|Status:${p.status}|Custodian:${p.custodian}`);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${qrData}&size=160x160&bgcolor=EEF2FF&color=3B5BDB&margin=10`;
+
+  const catTag = p.category ? `<span class="tag tag-blue">${p.category}</span>` : '';
+  const statusTag = `<span class="tag tag-green">${p.status}</span>`;
+  const custTag = `<span class="tag tag-orange">📍 ${p.custodian}</span>`;
+
+  result.className = '';
+  result.innerHTML = `
+    <div class="card">
+      <div class="card-title">✅ Product Found <span class="badge">${p.id}</span></div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">${p.name}</div>
+          <div class="prod-meta" style="margin-bottom:12px">${catTag}${statusTag}${custTag}</div>
+          <table style="font-size:.82rem;border-collapse:collapse;width:100%">
+            ${row('🏭 Manufacturer', p.manufacturer)}
+            ${row('📍 Made In', p.location || '—')}
+            ${row('📅 Mfr Date', p.manufactureDate || '—')}
+            ${row('📦 Batch', p.batch || '—')}
+            ${row('📬 Delivery Address', p.customerAddress || '—')}
+            ${row('📝 Notes', p.notes || '—')}
+            ${row('⏰ Registered', p.mintedAt)}
+          </table>
+        </div>
+        <div class="qr-box" style="flex-shrink:0">
+          <img src="${qrUrl}" width="160" height="160" alt="QR Code" />
+          <div style="font-size:.7rem;color:var(--muted);margin-top:6px">Scan to verify</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🗺️ Supply Chain Journey</div>
+      <div class="stepper">${stepsHTML}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Full History</div>
+      <div class="history-list">${histHTML || '<div class="empty-state"><p>No history yet</p></div>'}</div>
+    </div>`;
+  result.classList.remove('hidden');
+}
+
+function row(label, val) {
+  return `<tr><td style="padding:4px 0;color:var(--muted);width:140px">${label}</td><td style="padding:4px 0;font-weight:500">${val}</td></tr>`;
+}
+
+// ─── TRANSFER ────────────────────────────────────────────────────────────────
+function refreshTransferChips() {
+  const container = document.getElementById('transferChips');
+  const ids = Object.keys(ledger.products);
+  selectedTransferProd = null;
+  document.getElementById('transferForm').style.display = 'none';
+  document.getElementById('selectedTransferProd').classList.add('hidden');
+
+  if (!ids.length) {
+    container.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">No products registered yet</span>';
+    return;
+  }
+  container.innerHTML = ids.map(id => {
+    const p = ledger.products[id];
+    return `<div class="chip" onclick="selectTransferProd('${id}')">${p.id}: ${p.name}</div>`;
+  }).join('');
+}
+
+function selectTransferProd(id) {
+  selectedTransferProd = id;
+  const p = ledger.products[id];
+  document.querySelectorAll('#transferChips .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('selectedTransferName').textContent = `Selected: ${p.id} — ${p.name} | Current Stage: ${CUSTODY_STAGES[p.custodyStage]} | Status: ${p.status}`;
+  document.getElementById('selectedTransferProd').classList.remove('hidden');
+  document.getElementById('transferAlert').classList.add('hidden');
+
+  // Show available next stages
+  const custodyContainer = document.getElementById('custodyChips');
+  custodyContainer.innerHTML = CUSTODY_STAGES.map((stage, i) => {
+    const icons = ['🏭','✈️','🏬','🏪','👤'];
+    const isCurrent = i === p.custodyStage;
+    const isDone = i < p.custodyStage;
+    const cls = isDone ? 'chip' : isCurrent ? 'chip active' : 'chip';
+    const disabled = isDone ? 'style="opacity:.4;cursor:not-allowed"' : '';
+    const click = !isDone ? `onclick="pickCustody('${stage}',${i})"` : '';
+    return `<div class="${cls}" ${click} ${disabled}>${icons[i]} ${stage}${isDone ? ' ✓' : isCurrent ? ' (current)' : ''}</div>`;
+  }).join('');
+
+  document.getElementById('transferForm').style.display = 'block';
+}
+
+function pickCustody(stage, idx) {
+  selectedCustody = { stage, idx };
+  document.querySelectorAll('#custodyChips .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function doTransfer() {
+  if (!selectedTransferProd) { toast('Please select a product first', 'error'); return; }
+  if (!selectedCustody) { showAlert('transferAlert', 'Please select a custody stage to transfer to.'); return; }
+
+  const p = ledger.products[selectedTransferProd];
+  const recipient = document.getElementById('transferRecipient').value.trim();
+  const notes = document.getElementById('transferNotes').value.trim();
+
+  if (selectedCustody.idx < p.custodyStage) {
+    showAlert('transferAlert', 'Cannot transfer to a previous stage.'); return;
+  }
+
+  p.custodyStage = selectedCustody.idx;
+  p.custodian = recipient || selectedCustody.stage;
+  p.status = 'In Transit';
+  if (selectedCustody.stage === 'Customer') p.status = 'Delivered';
+  p.history.push({
+    action: `Transferred to ${selectedCustody.stage}`,
+    detail: `Handed over to: ${recipient || selectedCustody.stage}${notes ? ' · ' + notes : ''}`,
+    location: recipient,
+    time: now(),
+    dot: 'green',
+  });
+  saveLedger();
+  refreshDashboard();
+
+  toast(`✅ Custody transferred to ${selectedCustody.stage}!`, 'success');
+  showAlert('transferAlert', `Product successfully transferred to <strong>${selectedCustody.stage}</strong>!`, 'success');
+  document.getElementById('transferRecipient').value = '';
+  document.getElementById('transferNotes').value = '';
+  selectedCustody = null;
+  // refresh chips to reflect new state
+  setTimeout(() => selectTransferProd(selectedTransferProd), 100);
+}
+
+// ─── UPDATE STATUS ────────────────────────────────────────────────────────────
+function refreshStatusChips() {
+  const container = document.getElementById('statusChips');
+  const ids = Object.keys(ledger.products);
+  selectedStatusProd = null;
+  document.getElementById('statusForm').style.display = 'none';
+  document.getElementById('selectedStatusProd').classList.add('hidden');
+
+  if (!ids.length) {
+    container.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">No products registered yet</span>';
+    return;
+  }
+  container.innerHTML = ids.map(id => {
+    const p = ledger.products[id];
+    return `<div class="chip" onclick="selectStatusProd('${id}')">${p.id}: ${p.name}</div>`;
+  }).join('');
+}
+
+function selectStatusProd(id) {
+  selectedStatusProd = id;
+  const p = ledger.products[id];
+  document.querySelectorAll('#statusChips .chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('selectedStatusName').textContent = `Selected: ${p.id} — ${p.name} | Current Status: ${p.status}`;
+  document.getElementById('selectedStatusProd').classList.remove('hidden');
+  document.getElementById('statusAlert').classList.add('hidden');
+  document.getElementById('statusForm').style.display = 'block';
+}
+
+function setStatus(s) {
+  document.getElementById('statusText').value = s;
+  document.querySelectorAll('#page-status .chip.green').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function doUpdateStatus() {
+  if (!selectedStatusProd) { toast('Please select a product first', 'error'); return; }
+  const status = document.getElementById('statusText').value.trim();
+  if (!status) { showAlert('statusAlert', 'Please enter or select a status.'); return; }
+
+  const p = ledger.products[selectedStatusProd];
+  const location = document.getElementById('statusLocation').value.trim();
+  const notes = document.getElementById('statusNotes').value.trim();
+
+  p.status = status;
+  // auto-advance custody if relevant
+  if (status === 'Shipped' && p.custodyStage < 1) p.custodyStage = 1;
+  if (status === 'Delivered') p.custodyStage = 4;
+  if (status === 'Delivered' && p.custodyStage < 4) p.custodyStage = 4;
+
+  p.history.push({
+    action: `Status: ${status}`,
+    detail: `${notes || 'Status updated'}`,
+    location: location || '—',
+    time: now(),
+    dot: status === 'Delivered' ? 'green' : 'orange',
+  });
+  saveLedger();
+  refreshDashboard();
+
+  toast(`✅ Status updated to "${status}"!`, 'success');
+  showAlert('statusAlert', `Status updated to <strong>${status}</strong> successfully!`, 'success');
+  document.getElementById('statusText').value = '';
+  document.getElementById('statusLocation').value = '';
+  document.getElementById('statusNotes').value = '';
+  document.querySelectorAll('#page-status .chip.green').forEach(c => c.classList.remove('active'));
+  document.getElementById('selectedStatusName').textContent = `Selected: ${p.id} — ${p.name} | Current Status: ${p.status}`;
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function refreshDashboard() {
+  const ids = Object.keys(ledger.products);
+  const total = ids.length;
+  const delivered = ids.filter(id => ledger.products[id].status === 'Delivered').length;
+  const transit = ids.filter(id => ['In Transit','Shipped','Customs Cleared','At Warehouse','Out for Delivery'].includes(ledger.products[id].status)).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-active').textContent = transit;
+  document.getElementById('stat-delivered').textContent = delivered;
+  document.getElementById('recentBadge').textContent = total;
+
+  const recentList = document.getElementById('dashRecentList');
+  if (!total) {
+    recentList.innerHTML = `<div class="empty-state"><div class="icon">📦</div><div class="title">No products yet</div><p>Mint your first product to get started!</p></div>`;
+    return;
+  }
+
+  // Show last 5 products
+  const recent = ids.slice(-5).reverse();
+  recentList.innerHTML = `<div class="product-grid">${recent.map(id => {
+    const p = ledger.products[id];
+    const icons = { Electronics:'💻', Pharmaceuticals:'💊', 'Luxury Goods':'💎', Footwear:'👟', default:'📦' };
+    const icon = icons[p.category] || icons.default;
+    const stColor = p.status === 'Delivered' ? 'tag-green' : p.status === 'Manufactured' ? 'tag-blue' : 'tag-orange';
+    return `<div class="product-card" onclick="quickTrack('${id}')">
+      <div class="prod-header">
+        <div class="prod-icon">${icon}</div>
+        <div>
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-id">${p.id} · ${p.manufacturer}</div>
+        </div>
+      </div>
+      <div class="prod-meta">
+        <span class="tag ${stColor}">${p.status}</span>
+        <span class="tag tag-blue">${CUSTODY_STAGES[p.custodyStage]}</span>
+        ${p.category ? `<span class="tag tag-blue">${p.category}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function quickTrack(id) {
+  showPage('track');
+  document.getElementById('trackId').value = id;
+  trackProduct();
+  setTimeout(refreshTrackChips, 50);
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function refreshSettings() {
+  const ids = Object.keys(ledger.products);
+  document.getElementById('totalProdsCount').textContent = ids.length + ' products in local ledger';
+  const saved = localStorage.getItem(CONTRACT_KEY);
+  if (saved) document.getElementById('contractAddr').value = saved;
+
+  if (walletAddress) {
+    document.getElementById('mmAccount').textContent = walletAddress;
+    document.getElementById('mmMode').textContent = saved ? '🟢 Blockchain Mode (contract set)' : '🟡 MetaMask connected, no contract';
+    document.getElementById('mmStatus').className = 'alert alert-info';
+    document.getElementById('mmStatus').innerHTML = `<span class="alert-icon">🦊</span><span>MetaMask connected: ${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</span>`;
+    // Get network
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_chainId' }).then(chainId => {
+        const nets = { '0x1':'Ethereum Mainnet','0xaa36a7':'Sepolia Testnet','0x89':'Polygon','0x13881':'Mumbai Testnet','0x38':'BSC' };
+        document.getElementById('mmNetwork').textContent = nets[chainId] || 'Chain ID: ' + chainId;
+      });
+    }
+  } else {
+    document.getElementById('mmAccount').textContent = 'Not connected';
+    document.getElementById('mmMode').textContent = '📋 Local Ledger Mode (no blockchain)';
+    document.getElementById('mmNetwork').textContent = '—';
+  }
+}
+
+function saveContractAddr() {
+  const addr = document.getElementById('contractAddr').value.trim();
+  if (!addr) { toast('Please enter a contract address', 'error'); return; }
+  if (!addr.startsWith('0x') || addr.length < 40) {
+    toast('Invalid address format. Must start with 0x and be 42 chars', 'error'); return;
+  }
+  localStorage.setItem(CONTRACT_KEY, addr);
+  toast('Contract address saved!', 'success');
+  refreshSettings();
+}
+
+function clearContractAddr() {
+  localStorage.removeItem(CONTRACT_KEY);
+  document.getElementById('contractAddr').value = '';
+  toast('Contract address cleared', 'info');
+  refreshSettings();
+}
+
+function confirmReset() {
+  if (confirm('⚠️ This will delete ALL locally stored products. Are you sure?')) {
+    localStorage.removeItem(STORAGE_KEY);
+    ledger = { products: {}, nextId: 1 };
+    refreshDashboard();
+    refreshSettings();
+    toast('All data cleared successfully', 'info');
+  }
+}
+
+function exportData() {
+  const data = JSON.stringify(ledger, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'blocktrack-export-' + Date.now() + '.json';
+  a.click();
+  toast('Data exported!', 'success');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadLedger();
+refreshDashboard();
+
+// Auto-connect if already authorized
+if (window.ethereum) {
+  window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+    if (accounts.length > 0) {
+      walletAddress = accounts[0];
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = '🦊 ' + walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
+      btn.classList.add('connected');
+      refreshSettings();
+    }
+  });
+  window.ethereum.on('accountsChanged', accounts => {
+    walletAddress = accounts[0] || null;
+    const btn = document.getElementById('walletBtn');
+    if (walletAddress) {
+      btn.textContent = '🦊 ' + walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
+      btn.classList.add('connected');
+    } else {
+      btn.textContent = '🦊 Connect MetaMask';
+      btn.classList.remove('connected');
+    }
+    refreshSettings();
+  });
+}
+
+// Add demo data if ledger is empty on first run
+if (Object.keys(ledger.products).length === 0) {
+  // Pre-load one sample so the dashboard isn't empty
+  const id = genId();
+  ledger.products[id] = {
+    id, name: 'Sample Product', category: 'Electronics',
+    manufacturer: 'Demo Corp', location: 'Mumbai, India',
+    batch: 'DEMO-001', manufactureDate: '2024-01-15',
+    customerAddress: '', notes: 'This is a sample product',
+    status: 'Manufactured', custodyStage: 0, custodian: 'Demo Corp',
+    mintedAt: now(),
+    history: [{ action: 'Product Minted', detail: 'Demo product registered', location: 'Mumbai, India', time: now(), dot: 'blue' }],
+  };
+  saveLedger();
+  refreshDashboard();
+}
+</script>
+</body>
+</html>
